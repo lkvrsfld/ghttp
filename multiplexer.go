@@ -1,24 +1,32 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"os"
+)
 
-// registers all handlers to api.multiplexer
+// registers all handlers to ghttp.multiplexer
 
-func (api *Api)InitMultiplexer() (error) {
-	api.multiplexer = http.NewServeMux()
+func (ghttp *GHTTP) InitMultiplexer() error {
+	ghttp.multiplexer = http.NewServeMux()
 
-	api.multiplexer.Handle("/", api.middleware.Handle(http.HandlerFunc(okHandler)))
-	api.multiplexer.Handle("/err", api.middleware.Handle(http.HandlerFunc(errorHandler)))
-
+	ghttp.multiplexer.Handle("/", ghttp.middleware.Handle(http.HandlerFunc(fileServerHandler)))
 	return nil
 }
 
-func okHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello!"))
+func fileServerHandler(w http.ResponseWriter, r *http.Request) {
+	dir := ghttp.staticDir
+
+	if info, err := os.Stat(dir); err != nil || !info.IsDir() {
+		missingDistHandler(w, r)
+		return
+	}
+
+	fs := http.FileServer(http.Dir(dir))
+	http.StripPrefix("/", fs).ServeHTTP(w, r)
 }
 
-func errorHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusServiceUnavailable)
-	w.Write([]byte("Unavailable"))
+func missingDistHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Hello! no static assets found."))
 }

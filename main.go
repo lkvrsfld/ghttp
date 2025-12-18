@@ -1,15 +1,16 @@
 package main
 
-var api = Api{
-	Host: "127.0.0.1",
-	Port: "8080",
+var ghttp = GHTTP{
+	Host:      GetEnvOrDefault("GOHTTP_HOST", "0.0.0.0"),
+	Port:      GetEnvOrDefault("GOHTTP_PORT", "8080"),
+	staticDir: GetEnvOrDefault("GOHTTP_STATIC_DIR", ""),
 }
 
 func main() {
-	if err := api.Init(); err != nil {
+	if err := ghttp.Init(); err != nil {
 		panic(err)
 	}
-	if err := api.Start(); err != nil {
+	if err := ghttp.Start(); err != nil {
 		panic(err)
 	}
 }

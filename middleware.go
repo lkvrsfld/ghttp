@@ -7,10 +7,9 @@ import (
 type Middleware func(http.Handler) http.Handler
 type MiddlewareChain []Middleware
 
-// registers all middleware and writes to api.middlewares
-func (api *Api) InitMiddleware() error {
-	api.middleware = append(api.middleware, testMiddleware)
-
+// registers all middleware and writes to ghttp.middlewares
+func (ghttp *GHTTP) InitMiddleware() error {
+	ghttp.middleware = append(ghttp.middleware, logMiddleware)
 	return nil
 }
 
@@ -26,9 +25,10 @@ func (mc MiddlewareChain) Handle(originalHandler http.Handler) http.Handler {
 	return originalHandler
 }
 
-func testMiddleware(h http.Handler) http.Handler {
+func logMiddleware(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		api.Log("test middleware triggered")
+		msg := r.Method + " " + r.URL.Path + " from " + r.RemoteAddr
+		ghttp.Log(msg)
 		h.ServeHTTP(w, r)
 	})
 }

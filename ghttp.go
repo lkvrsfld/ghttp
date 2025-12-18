@@ -6,42 +6,43 @@ import (
 	"time"
 )
 
-type Api struct {
+type GHTTP struct {
 	Host        string
 	Port        string
+	staticDir   string
 	server      *http.Server
 	multiplexer *http.ServeMux
 	middleware  MiddlewareChain
 }
 
-func (api *Api) Init() error {
+func (ghttp *GHTTP) Init() error {
 	var err error
 	// init middleware
-	err = api.InitMiddleware()
+	err = ghttp.InitMiddleware()
 	if err != nil {
 		return err
 	}
 
 	// init handlers
-	err = api.InitMultiplexer()
+	err = ghttp.InitMultiplexer()
 	if err != nil {
 		return err
 	}
 	// init handlers
-	api.server = &http.Server{
-		Addr:    api.Host + ":" + api.Port,
-		Handler: api.multiplexer,
+	ghttp.server = &http.Server{
+		Addr:    ghttp.Host + ":" + ghttp.Port,
+		Handler: ghttp.multiplexer,
 	}
 
 	return nil
 }
 
 // starts the server with listenAndServe
-func (api *Api) Start() error {
-	return api.server.ListenAndServe()
+func (ghttp *GHTTP) Start() error {
+	return ghttp.server.ListenAndServe()
 }
 
-func (api *Api) Log(log string) {
+func (ghttp *GHTTP) Log(log string) {
 	timestamp := time.Now().Local().Format("2006-01-02 15:04:05")
 	prefix := timestamp + ": "
 	fmt.Println(prefix + log)
